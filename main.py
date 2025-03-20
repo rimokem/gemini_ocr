@@ -169,7 +169,8 @@ def process_images(folder_path: str, output_file_path: str) -> bool:
         # 結果を整形して保存
         with open(output_file_path, 'w', encoding='utf-8') as output_file:
             output_file.write('\n\n'.join([
-                f"### ファイル: {filename} ###\n{text}"
+        ##        f"### ファイル: {filename} ###\n{text}"
+                f"------------------\n{text}"
                 for filename, text in results
             ]))
             
