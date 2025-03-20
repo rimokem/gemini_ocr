@@ -39,7 +39,7 @@ uv run main.py your_pdf_file.pdf
 ### オプション
 
 ```
-usage: main.py [-h] [-o OUTPUT] [-z ZOOM] [-f FIRST_PAGE] [-l LAST_PAGE] [-k] pdf_file
+usage: main.py [-h] [-o OUTPUT] [-z ZOOM] [-f FIRST_PAGE] [-l LAST_PAGE] [-k] [-p PROMPT] pdf_file
 
 PDFファイルからテキストを抽出するOCRツール
 
@@ -49,13 +49,15 @@ positional arguments:
 options:
   -h, --help            ヘルプメッセージを表示して終了
   -o OUTPUT, --output OUTPUT
-                        出力テキストファイルのパス（指定しない場合はPDFファイル名_ocr.txtになります）
+                        出力テキストファイルのパス（指定しない場合は、PDFファイル名_ocr.txtになります）
   -z ZOOM, --zoom ZOOM  PDFの拡大率（デフォルト: 2.0）
   -f FIRST_PAGE, --first-page FIRST_PAGE
                         開始ページ番号（1始まり）
   -l LAST_PAGE, --last-page LAST_PAGE
                         終了ページ番号（1始まり）
   -k, --keep-images     処理後に一時画像ファイルを保持する
+  -p PROMPT, --prompt PROMPT
+                        デフォルトのプロンプトに追加するテキスト
 ```
 
 ### 使用例
@@ -73,4 +75,14 @@ uv run main.py document.pdf -z 3.0
 出力ファイル名を指定:
 ```bash
 uv run main.py document.pdf -o extracted_text.txt
+```
+
+カスタムプロンプトを追加:
+```bash
+uv run main.py document.pdf -p "特に数字やアルファベットの正確な抽出を重視してください"
+```
+
+表の抽出を重視:
+```bash
+uv run main.py document.pdf -p "表形式のデータは、その構造を維持して抽出してください"
 ```

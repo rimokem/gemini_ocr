@@ -23,18 +23,29 @@ TEMP_DIR = "tmp_ocr_images"
 DEFAULT_ZOOM = 2.0
 DEFAULT_OUTPUT_FORMAT = "png"
 GEMINI_MODEL = "gemini-2.0-flash"
-OCR_PROMPT = "この画像に含まれるすべてのテキストを抽出してください。改行や段落構造を維持し、完全かつ正確に文字起こしをしてください。"
+DEFAULT_OCR_PROMPT = "この画像に含まれるすべてのテキストを抽出してください。改行や段落構造を維持し、完全かつ正確に文字起こしをしてください。"
 
 
 def parse_arguments() -> argparse.Namespace:
     """コマンドライン引数を解析する"""
     parser = argparse.ArgumentParser(description='PDFファイルからテキストを抽出するOCRツール')
+    # 必須引数
     parser.add_argument('pdf_file', help='OCR処理するPDFファイルのパス')
-    parser.add_argument('-o', '--output', help='出力テキストファイルのパス（指定しない場合はPDFファイル名_ocr.txtになります）')
-    parser.add_argument('-z', '--zoom', type=float, default=DEFAULT_ZOOM, help=f'PDFの拡大率（デフォルト: {DEFAULT_ZOOM}）')
-    parser.add_argument('-f', '--first-page', type=int, help='開始ページ番号（1始まり）')
-    parser.add_argument('-l', '--last-page', type=int, help='終了ページ番号（1始まり）')
-    parser.add_argument('-k', '--keep-images', action='store_true', help='処理後に一時画像ファイルを保持する')
+    
+    # ページ範囲の指定
+    page_group = parser.add_argument_group('ページ範囲オプション')
+    page_group.add_argument('-f', '--first-page', type=int, help='開始ページ番号（1始まり）')
+    page_group.add_argument('-l', '--last-page', type=int, help='終了ページ番号（1始まり）')
+    
+    # 出力関連
+    output_group = parser.add_argument_group('出力オプション')
+    output_group.add_argument('-o', '--output', help='出力テキストファイルのパス（指定しない場合はPDFファイル名_ocr.txtになります）')
+    output_group.add_argument('-k', '--keep-images', action='store_true', help='処理後に一時画像ファイルを保持する')
+    
+    # 処理設定
+    process_group = parser.add_argument_group('処理オプション')
+    process_group.add_argument('-z', '--zoom', type=float, default=DEFAULT_ZOOM, help=f'PDFの拡大率（デフォルト: {DEFAULT_ZOOM}）')
+    process_group.add_argument('-p', '--prompt', help='デフォルトのプロンプトに追加するテキスト')
     
     return parser.parse_args()
 
@@ -138,7 +149,7 @@ def process_image(client: genai.Client, image_path: str, index: int, total: int)
     return os.path.basename(image_path), text
 
 
-def process_images(folder_path: str, output_file_path: str) -> bool:
+def process_images(folder_path: str, output_file_path: str, prompt: str) -> bool:
     """フォルダ内の画像に対してOCRを実行し、結果をファイルに保存する"""
     try:
         # 画像ファイルを取得してソート
@@ -169,7 +180,6 @@ def process_images(folder_path: str, output_file_path: str) -> bool:
         # 結果を整形して保存
         with open(output_file_path, 'w', encoding='utf-8') as output_file:
             output_file.write('\n\n'.join([
-        ##        f"### ファイル: {filename} ###\n{text}"
                 f"------------------\n{text}"
                 for filename, text in results
             ]))
@@ -215,9 +225,14 @@ def run_ocr_process(args: argparse.Namespace) -> int:
             last_page=last_page
         )
         
+        # プロンプトの準備
+        prompt = DEFAULT_OCR_PROMPT
+        if args.prompt:
+            prompt = f"{DEFAULT_OCR_PROMPT}\n{args.prompt}"
+        
         # 画像からテキストを抽出
         print(f"画像からテキストを抽出しています...")
-        result = process_images(TEMP_DIR, output_file)
+        result = process_images(TEMP_DIR, output_file, prompt=prompt)
         
         return 0 if result else 1
         
