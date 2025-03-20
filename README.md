@@ -1,6 +1,6 @@
 # Gemini OCR
 
-GeminiのAI機能を活用した、PDFからのテキスト抽出ツール
+GeminiのAPIを活用した、PDFからのテキスト抽出ツール
 
 ## 概要
 
