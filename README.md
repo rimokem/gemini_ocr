@@ -74,8 +74,3 @@ uv run main.py document.pdf -z 3.0
 ```bash
 uv run main.py document.pdf -o extracted_text.txt
 ```
-
-詳細な出力を表示:
-```bash
-uv run main.py document.pdf -v
-```
