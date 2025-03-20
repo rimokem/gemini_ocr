@@ -1,10 +1,12 @@
 import os
+import sys
 import fitz  # PyMuPDF
 from pathlib import Path
 from google import genai
 from PIL import Image
 from dotenv import load_dotenv
 import shutil
+import argparse
 
 def ocr_images_in_folder(folder_path, output_file_path):
     """
@@ -133,10 +135,61 @@ def convert_pdf_to_images_with_pymupdf(pdf_path, output_dir=None, output_format=
     return output_paths
 
 def main():
-    print("Hello from gemini-ocr!")
-    convert_pdf_to_images_with_pymupdf("incompleteness.pdf", output_dir="tmp", output_format="png", zoom=2.0, first_page=0, last_page=None)
-    ocr_images_in_folder("tmp", "ocr_results.txt")
-    shutil.rmtree("tmp")
+    # コマンドライン引数の解析
+    parser = argparse.ArgumentParser(description='PDFファイルからテキストを抽出するOCRツール')
+    parser.add_argument('pdf_file', help='OCR処理するPDFファイルのパス')
+    parser.add_argument('-o', '--output', help='出力テキストファイルのパス（指定しない場合はPDFファイル名.txtになります）')
+    parser.add_argument('-z', '--zoom', type=float, default=2.0, help='PDFの拡大率（デフォルト: 2.0）')
+    parser.add_argument('-f', '--first-page', type=int, help='開始ページ番号（1始まり）')
+    parser.add_argument('-l', '--last-page', type=int, help='終了ページ番号（1始まり）')
+    
+    args = parser.parse_args()
+    
+    # PDFファイルの存在チェック
+    if not os.path.isfile(args.pdf_file):
+        print(f"エラー: PDFファイル '{args.pdf_file}' が見つかりません")
+        sys.exit(1)
+    
+    # 出力ファイル名の設定
+    if args.output:
+        output_file = args.output
+    else:
+        # 入力PDFファイルの拡張子をtxtに変更
+        pdf_base = os.path.splitext(os.path.basename(args.pdf_file))[0]
+        output_file = f"{pdf_base}_ocr.txt"
+    
+    # 一時ディレクトリの作成
+    temp_dir = "tmp_ocr_images"
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
+    
+    try:
+        # ページ番号を0ベースに変換（None値の場合はNoneのまま）
+        first_page = None if args.first_page is None else args.first_page - 1
+        last_page = None if args.last_page is None else args.last_page - 1
+        
+        # PDFを画像に変換
+        print(f"PDFファイル '{args.pdf_file}' を画像に変換しています...")
+        convert_pdf_to_images_with_pymupdf(
+            args.pdf_file, 
+            output_dir=temp_dir, 
+            output_format="png", 
+            zoom=args.zoom, 
+            first_page=first_page, 
+            last_page=last_page
+        )
+        
+        # 画像からテキストを抽出
+        print(f"画像からテキストを抽出しています...")
+        ocr_images_in_folder(temp_dir, output_file)
+        
+        print(f"OCR処理が完了しました。結果は '{output_file}' に保存されました。")
+    
+    finally:
+        # 一時ディレクトリの削除
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
+            print(f"一時ディレクトリ '{temp_dir}' を削除しました。")
 
 if __name__ == "__main__":
     main()
