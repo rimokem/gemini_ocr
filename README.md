@@ -10,15 +10,15 @@ Gemini OCRは、Google Gemini 2.0 Flash APIを使用して、PDFファイルか�
 
 ### 前提条件
 
-- uv
-- Google AI APIキー
+- [uv](https://docs.astral.sh/uv/getting-started/installation/)
+- [Google AI APIキー](https://aistudio.google.com/)
 
 ### セットアップ
 
 1. リポジトリをクローン
 
 ```bash
-git clone https://github.com/yourusername/gemini_ocr.git
+git clone https://github.com/rimokem/gemini_ocr.git
 cd gemini_ocr
 ```
 
