@@ -132,20 +132,20 @@ def init_genai_client() -> genai.Client:
     return genai.Client(api_key=api_key)
 
 
-def extract_text_from_image(client: genai.Client, image_path: str) -> str:
+def extract_text_from_image(client: genai.Client, image_path: str, prompt: str) -> str:
     """単一の画像からテキストを抽出する"""
     with Image.open(image_path) as img:
         response = client.models.generate_content(
             model=GEMINI_MODEL,
-            contents=[OCR_PROMPT, img]
+            contents=[prompt, img]
         )
         return response.text
 
 
-def process_image(client: genai.Client, image_path: str, index: int, total: int) -> Tuple[str, str]:
+def process_image(client: genai.Client, image_path: str, index: int, total: int, prompt: str) -> Tuple[str, str]:
     """画像を処理してファイル名とテキストのタプルを返す"""
     print(f"OCR処理中 ({index+1}/{total}): {os.path.basename(image_path)}")
-    text = extract_text_from_image(client, image_path)
+    text = extract_text_from_image(client, image_path, prompt)
     return os.path.basename(image_path), text
 
 
@@ -168,8 +168,8 @@ def process_images(folder_path: str, output_file_path: str, prompt: str) -> bool
         # Google AIクライアントを初期化
         client = init_genai_client()
         
-        # 部分適用で画像処理関数を準備
-        process = partial(process_image, client)
+        # 部分適用で画像処理関数を準備（プロンプトを追加）
+        process = partial(process_image, client, prompt=prompt)
         
         # 各画像を処理して結果を取得
         results = [
@@ -179,8 +179,8 @@ def process_images(folder_path: str, output_file_path: str, prompt: str) -> bool
         
         # 結果を整形して保存
         with open(output_file_path, 'w', encoding='utf-8') as output_file:
-            output_file.write('\n\n'.join([
-                f"------------------\n{text}"
+            output_file.write('\n'.join([
+                f"------------------\n\n{text}"
                 for filename, text in results
             ]))
             
