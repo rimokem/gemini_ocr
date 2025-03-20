@@ -14,3 +14,6 @@ wheels/
 
 # PDF files
 *.pdf
+
+# TXT files
+*.txt
