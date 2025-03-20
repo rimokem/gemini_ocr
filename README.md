@@ -79,7 +79,3 @@ uv run main.py document.pdf -o extracted_text.txt
 ```bash
 uv run main.py document.pdf -v
 ```
-
-## ライセンス
-
-MIT License
